@@ -7,7 +7,7 @@ export default async (request) => {
     const body = await request.json();
     const event = clean(body.event, 60);
     if (!allowed.has(event)) return Response.json({ error: "Unsupported event" }, { status: 400 });
-    console.log(JSON.stringify({ event, path: clean(body.path, 180) || "/", product: clean(body.product, 100), label: clean(body.label, 140), session: clean(body.session, 80), recordedAt: new Date().toISOString() }));
+    console.log(JSON.stringify({ event, path: clean(body.path, 180) || "/", product: clean(body.product, 100), partner: clean(body.partner, 80), destination: clean(body.destination, 240), placement: clean(body.placement, 120), label: clean(body.label, 140), session: clean(body.session, 80), recordedAt: new Date().toISOString() }));
     return new Response(null, { status: 204, headers: { "cache-control": "no-store" } });
   } catch {
     return Response.json({ error: "Invalid event" }, { status: 400 });

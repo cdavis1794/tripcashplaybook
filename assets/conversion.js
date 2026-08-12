@@ -7,6 +7,17 @@
     if (navigator.sendBeacon) navigator.sendBeacon("/.netlify/functions/conversion-event", new Blob([body], { type: "application/json" }));
     else fetch("/.netlify/functions/conversion-event", { method: "POST", headers: { "content-type": "application/json" }, body, keepalive: true }).catch(() => {});
   };
+  const affiliatePartner = hostname => {
+    const host = hostname.replace(/^www\./, "").toLowerCase();
+    if (host === "villiers.ai" || host.endsWith(".villiers.ai")) return "Villiers";
+    if (host === "viator.com" || host.endsWith(".viator.com") || host === "vi.me") return "Viator";
+    if (host.endsWith("tpo.lv")) return ({
+      "yesim.tpo.lv": "Yesim", "gettransfer.tpo.lv": "GetTransfer", "kiwi.tpo.lv": "Kiwi",
+      "ektatraveling.tpo.lv": "EKTA", "klook.tpo.lv": "Klook", "tiqets.tpo.lv": "Tiqets"
+    })[host] || "Travelpayouts";
+    return "";
+  };
+  const placement = link => link.dataset.placement || link.closest("[data-affiliate-placement]")?.dataset.affiliatePlacement || link.closest("section,header,footer,aside,article")?.id || link.closest("section,header,footer,aside,article")?.className || "page";
   const start = () => {
     track("page_view");
     if (document.body.dataset.productAccess) track("access_page_view", { product: document.body.dataset.productAccess });
@@ -16,7 +27,7 @@
     document.addEventListener("click", event => {
       const link = event.target.closest && event.target.closest("a[href]"); if (!link) return;
       if (link.href.includes("buy.stripe.com")) track("checkout_started", { product: link.dataset.product || "Trip Cost Command Center" });
-      else if (/tpo\.lv|kiwi\.com|klook\.com|tiqets\.com/.test(link.href)) track("affiliate_click", { label: (link.textContent || "").trim().slice(0, 120) });
+      else { try { const url = new URL(link.href, location.href); const partner = affiliatePartner(url.hostname); if (partner) track("affiliate_click", { partner, destination: url.origin + url.pathname, placement: String(placement(link)).slice(0, 120), label: (link.textContent || "").trim().replace(/\s+/g, " ").slice(0, 120) }); } catch {} }
     }, true);
     const form = document.querySelector('form[name="product-feedback"]');
     if (form) form.addEventListener("submit", () => track("feedback_submitted", { product: form.querySelector('[name="product"]')?.value || "" }));
