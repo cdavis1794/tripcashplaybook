@@ -6,6 +6,24 @@
     const body = JSON.stringify({ event, path: location.pathname, session: session(), ...details });
     if (navigator.sendBeacon) navigator.sendBeacon("/.netlify/functions/conversion-event", new Blob([body], { type: "application/json" }));
     else fetch("/.netlify/functions/conversion-event", { method: "POST", headers: { "content-type": "application/json" }, body, keepalive: true }).catch(() => {});
+    if (typeof window.gtag === "function") {
+      if (event === "checkout_started") {
+        const product = details.product || "Trip Cost Command Center";
+        window.gtag("event", "begin_checkout", {
+          currency: "USD",
+          value: 29,
+          items: [{ item_name: product, price: 29, quantity: 1 }]
+        });
+      } else if (event === "affiliate_click") {
+        window.gtag("event", "affiliate_outbound", {
+          affiliate_partner: details.partner || "Affiliate partner",
+          link_domain: (() => { try { return new URL(details.destination).hostname; } catch { return ""; } })(),
+          placement: String(details.placement || "page").slice(0, 120)
+        });
+      } else if (event === "product_view") {
+        window.gtag("event", "view_item", { items: [{ item_name: details.product || "Trip Cost Command Center" }] });
+      }
+    }
   };
   const affiliatePartner = hostname => {
     const host = hostname.replace(/^www\./, "").toLowerCase();
