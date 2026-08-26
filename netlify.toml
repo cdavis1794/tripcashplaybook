@@ -17,6 +17,12 @@
     Cache-Control = "public, max-age=3600, must-revalidate"
 
 [[headers]]
+  for = "/access/*"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow, noarchive"
+    Cache-Control = "private, max-age=0, no-store"
+
+[[headers]]
   for = "/"
   [headers.values]
     Cache-Control = "public, max-age=0, must-revalidate"
